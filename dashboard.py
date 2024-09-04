@@ -67,27 +67,32 @@ if uploaded_files:
         if 'High Intensity Run (m)' in comparison_df.columns:
             metrics += ['High Intensity Run (m)', 'High Intensity Run (m)_Team Avg']
         
+        # Melt the data
         progress_chart_data = comparison_df.melt(id_vars=['Date', 'Player Name'], 
                                                  value_vars=metrics,
                                                  var_name='Metric', value_name='Value')
         
         # Debugging: Check the structure of progress_chart_data
-        st.write("Progress Chart Data:")
+        st.write("Progress Chart Data (melted):")
         st.write(progress_chart_data.head())
-        
-        # Simplify the pivot table
-        if not progress_chart_data.empty:
+        st.write(progress_chart_data.info())
+
+        # Ensure that 'Metric' and 'Value' columns exist
+        if 'Metric' not in progress_chart_data.columns or 'Value' not in progress_chart_data.columns:
+            st.error("The required columns 'Metric' or 'Value' are missing in the melted data.")
+        else:
             try:
+                # Simplify the pivot table
                 progress_chart_data_pivot = progress_chart_data.pivot_table(index='Date', columns='Metric', values='Value')
+                
+                # Debugging: Check the structure of progress_chart_data_pivot
                 st.write("Progress Chart Data Pivot:")
                 st.write(progress_chart_data_pivot.head())
                 
                 # Line chart for progress
                 st.line_chart(progress_chart_data_pivot)
-            except KeyError as e:
-                st.error(f"KeyError: {e}. Check the column names in progress_chart_data.")
-        else:
-            st.write("No data available for progress over sessions.")
+            except Exception as e:
+                st.error(f"An error occurred while creating the pivot table: {e}")
         
     else:
         st.write("Please select a player to view the progress.")
